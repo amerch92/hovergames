@@ -50,7 +50,7 @@
 
 #include "Pixy2I2C_PX4.h"
 
-//
+// inlcude all of the references for getting the current gps position
 #include "uORB/topics/vehicle_gps_position.h"
 #include <uORB/uORB.h>
 #include <uORB/topics/position_setpoint_triplet.h>
@@ -64,10 +64,13 @@
 
 extern "C" __EXPORT int pixycam_main(int argc, char *argv[]);
 
+// create global_pos_sub that grabs the vehicle_global_position
+// I'm going to use it to transmit the location back
 int global_pos_sub = orb_subscribe(ORB_ID(vehicle_global_position));
 
 int pixycam_main(int argc, char *argv[])
 {
+	// this is just for initialization
 	PX4_INFO("Hello pixycam driver");
 	usleep(5000);
 
@@ -88,23 +91,22 @@ int pixycam_main(int argc, char *argv[])
 
 			// If there are detect blocks, print them!
 			if (pixy.ccc.numBlocks) {
+				// I don't care about how many blocks there are but if any are detected
+				// then I want to print the location of those components
 				bool pos_updated;
-
+				
+				// update the position using orb_check
 				orb_check(global_pos_sub, &pos_updated);
-
+				
+				// print that we detected something at this position
+				// this will allow the drone to just have a set route, print off all
+				// of the positions and then we can individually review each one of these
+				// positions
 				printf("Detected at location: @u", global_pos_sub);
 
-				// printf("%i", pixy.ccc.numBlocks);
-				// printf("\n");
-
-				// for (i = 0; i < pixy.ccc.numBlocks; i++) {
-				// 	printf("  block ");
-				// 	printf("%i", i);
-				// 	printf(": ");
-				// 	pixy.ccc.blocks[i].print();
-				// }
+				}
 			}
-
+			
 			usleep(500);
 		}
 	}
